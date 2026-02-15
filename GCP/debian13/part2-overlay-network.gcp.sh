@@ -110,13 +110,13 @@ ip link set "$TUN_DEV" up
 # 1) RX: UDP listen -> TUN (does NOT require peer to be up)
 socat -u -T 1 \
   "UDP-RECVFROM:${UDP_PORT},bind=${NODE_IP},reuseaddr" \
-  "TUN:${TUN_DEV},iff-no-pi" \
+  "TUN:,tun-name=${TUN_DEV},iff-no-pi" \
   >/tmp/socat-${TUN_DEV}-rx.log 2>&1 &
 SOCAT_RX_PID=$!
 
 # 2) TX: TUN -> UDP sendto peer (does NOT require peer to be up)
 socat -u -T 1 \
-  "TUN:${TUN_DEV},iff-no-pi" \
+  "TUN:,tun-name=${TUN_DEV},iff-no-pi" \
   "UDP-SENDTO:${PEER_NODE_IP}:${UDP_PORT},sourceport=${UDP_PORT},bind=${NODE_IP}" \
   >/tmp/socat-${TUN_DEV}-tx.log 2>&1 &
 SOCAT_TX_PID=$!
