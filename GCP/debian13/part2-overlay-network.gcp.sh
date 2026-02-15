@@ -23,7 +23,7 @@ TUN_DEV="tundudp"
 
 cleanup() {
   set +e
-  pkill -f "socat.*UDP:.*:${UDP_PORT}.*TUN:.*${TUN_DEV}" 2>/dev/null
+  kill "${SOCAT_RX_PID:-}" "${SOCAT_TX_PID:-}" 2>/dev/null || true
   ip netns del "$NS1" 2>/dev/null
   ip netns del "$NS2" 2>/dev/null
   ip link del br0 2>/dev/null
