@@ -84,13 +84,24 @@ sysctl -w net.ipv4.ip_forward=1 >/dev/null
 # --- overlay: UDP <-> TUN ---
 # Underlay uses NODE_IP<->PEER_NODE_IP UDP:UDP_PORT
 # Inner traffic uses 172.16.x.x
-socat \
-  "UDP:${PEER_NODE_IP}:${UDP_PORT},bind=${NODE_IP}:${UDP_PORT}" \
-  "TUN:${TUN_IP},tun-name=${TUN_DEV},iff-no-pi,tun-type=tun,iff-up" \
-  >/tmp/socat-${TUN_DEV}.log 2>&1 &
-
-sleep 1
+ip tuntap add dev "$TUN_DEV" mode tun 2>/dev/null || true
+ip addr flush dev "$TUN_DEV" 2>/dev/null || true
+ip addr add "$TUN_IP" dev "$TUN_DEV"
 ip link set "$TUN_DEV" up
+
+# 1) RX: UDP listen -> TUN (does NOT require peer to be up)
+socat -u -T 1 \
+  "UDP-RECVFROM:${UDP_PORT},bind=${NODE_IP},reuseaddr" \
+  "TUN:${TUN_DEV},iff-no-pi" \
+  >/tmp/socat-${TUN_DEV}-rx.log 2>&1 &
+SOCAT_RX_PID=$!
+
+# 2) TX: TUN -> UDP sendto peer
+socat -u -T 1 \
+  "TUN:${TUN_DEV},iff-no-pi" \
+  "UDP-SENDTO:${PEER_NODE_IP}:${UDP_PORT},sourceport=${UDP_PORT},bind=${NODE_IP}" \
+  >/tmp/socat-${TUN_DEV}-tx.log 2>&1 &
+SOCAT_TX_PID=$!
 
 echo "Local sanity:"
 ip netns exec "$NS1" ping -W 1 -c 2 "$IP2"
