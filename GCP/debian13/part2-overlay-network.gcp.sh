@@ -117,7 +117,7 @@ SOCAT_RX_PID=$!
 # 2) TX: TUN -> UDP sendto peer (does NOT require peer to be up)
 socat -u -T 1 \
   "TUN:${TUN_IP},tun-name=${TUN_DEV},iff-no-pi" \
-  "UDP-SENDTO::" \
+  "UDP-SENDTO:${PEER_NODE_IP}:${UDP_PORT}" \
   >/tmp/socat-${TUN_DEV}-tx.log 2>&1 &
 SOCAT_TX_PID=$!
 
