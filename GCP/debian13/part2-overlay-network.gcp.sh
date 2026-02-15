@@ -7,6 +7,16 @@ UDP_PORT="${UDP_PORT:-9000}"
 
 NODE_IP="$(ip -4 route get 1.1.1.1 | awk '{for(i=1;i<=NF;i++) if($i=="src") print $(i+1)}')"
 
+# --- ensure /dev/net/tun exists ---
+if [[ ! -e /dev/net/tun ]]; then
+  modprobe tun 2>/dev/null || true
+  mkdir -p /dev/net
+  if [[ ! -e /dev/net/tun ]]; then
+    mknod /dev/net/tun c 10 200
+    chmod 600 /dev/net/tun
+  fi
+fi
+
 NS1="NS1"
 NS2="NS2"
 TUN_DEV="tundudp"
