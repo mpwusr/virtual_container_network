@@ -152,6 +152,10 @@ if [[ $PING_RC -ne 0 ]]; then
   echo "  1) Peer script not running (run SIDE=0 on one VM and SIDE=1 on the other)."
   echo "  2) GCP firewall/tag missing for udp:${UDP_PORT} and icmp (tag: overlay-demo)."
   echo "  3) Wrong PEER_NODE_IP (must be INTERNAL IP)."
+    if [[ "$KEEP_RUNNING" == "1" ]]; then
+      echo "KEEP_RUNNING=1 set; leaving overlay up despite failure. Start peer node now, then retest manually."
+      while true; do sleep 3600; done
+    fi
   exit 1
 fi
 
